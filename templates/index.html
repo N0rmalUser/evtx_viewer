@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Анализ CSV файлов</title>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/colreorder/1.5.2/css/colReorder.dataTables.min.css">
+    <style>
+        #unique-http-requests-table, 
+        #network-map-content, 
+        #account-names-content, 
+        #unique-users-content,
+        #exe-files-content {
+            display: none;
+        }
+        
+        .btn-new {
+            border-radius: 10px;
+            color: white;
+            transition: .2s linear;
+            background: #b000fb;
+            margin: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+
+        .btn-new:hover {
+            box-shadow: #5c0383 0 0px 0px 40px inset;
+        }
+
+        .csv-table {
+            display: none;
+            word-break: break-all;
+            width: 100%;
+            width: auto;
+        }
+    </style>
+</head>
+<body>
+    <!-- Добавленные кнопки -->
+    <button id="show-http-requests-btn" class="btn-new">Уникальные HTTP-Запросы</button>
+    <button id="show-account-names-btn" class="btn-new">Уникальные имена машин</button>
+    <button id="show-unique-users-btn" class="btn-new">Уникальные пользователи</button>
+    <button id="show-exe-files-btn" class="btn-new">Уникальные файлы .exe</button>
+    <button id="view-network-map-btn" class="btn-new">Показать карту сети</button>
+
+    <!-- Разделы с содержимым -->
+    <div id="unique-http-requests-table">
+        <table id="http-requests-table" class="table table-striped">
+            <thead>
+                <tr><th>HTTP Запрос</th></tr>
+            </thead>
+            <tbody>
+                {% for request in unique_http_requests %}
+                <tr><td>{{ request }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div id="account-names-content">
+        <table id="account-names-table" class="table table-striped">
+            <thead>
+                <tr><th>Уникальные имена машин</th></tr>
+            </thead>
+            <tbody>
+                {% for name in unique_machine_names %}
+                <tr><td>{{ name }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div id="unique-users-content">
+        <table id="unique-users-table" class="table table-striped">
+            <thead>
+                <tr><th>Уникальные пользователи</th></tr>
+            </thead>
+            <tbody>
+                {% for user in unique_users %}
+                <tr><td>{{ user }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div id="exe-files-content">
+        <table id="exe-files-table" class="table table-striped">
+            <thead>
+                <tr><th>Уникальные файлы .exe</th></tr>
+            </thead>
+            <tbody>
+                {% for file in unique_exe_files %}
+                <tr><td>{{ file }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div id="network-map-content">
+        <pre id="network-map-text"></pre>
+    </div>
+
+    <!-- Цикл для отображения всех таблиц -->
+    {% for file_name, html_table in data_frames %}
+        <h2>{{ file_name }}</h2>
+        <div>{{ html_table|safe }}</div>
+    {% endfor %}
+
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.js"></script>
+    <script src="https://cdn.datatables.net/colreorder/1.5.2/js/dataTables.colReorder.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            var table = $('.table').DataTable({
+                "searching": false,
+                "lengthChange": false,
+                "pageLength": -1,
+                "lengthMenu": [[-1, 10, 25, 50, 100], ["Все", 10, 25, 50, 100]],
+                "colReorder": true, // Включает возможность изменения порядка столбцов
+                "autoWidth": false // Отключает автоматическую ширину столбцов
+            });
+
+            new $.fn.dataTable.ColReorder(table, {
+                "resize": true // Включает возможность изменения размера столбцов
+            });
+            
+            // Функция для показа/скрытия разделов при нажатии на соответствующие кнопки
+            $('#show-http-requests-btn').on('click', function() {
+                $('#unique-http-requests-table').toggle();
+            });
+
+            $('#show-account-names-btn').on('click', function() {
+                $('#account-names-content').toggle();
+            });
+
+            $('#show-unique-users-btn').on('click', function() {
+                $('#unique-users-content').toggle();
+            });
+
+            $('#show-exe-files-btn').on('click', function() {
+                $('#exe-files-content').toggle();
+            });
+
+            // Дополнительные функции оставлены без изменений
+            $('#view-network-map-btn').click(function() {
+                fetch('/view-network-map')
+                    .then(response => response.text())
+                    .then(data => {
+                        $('#network-map-text').text(data);
+                        $('#network-map-content').show();
+                    })
+                    .catch(error => console.error('Ошибка:', error));
+            });
+        });
+    </script>
+</body>
+</html>
